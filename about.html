@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О нас - AIM assist AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html"><i class="fas fa-crosshairs"></i></a>
+                <span>AIM assist AI</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html">Главная</a>
+                <a href="catalog.html">Каталог</a>
+                <a href="about.html" class="active">О нас</a>
+            </nav>
+            <div class="user-panel">
+                <button id="loginBtn" class="btn btn-outline">Войти</button>
+                <button id="registerBtn" class="btn btn-primary">Регистрация</button>
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <span id="username"></span>
+                    <button id="logoutBtn" class="btn btn-outline">Выйти</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>О AIM assist AI</h1>
+            <p>Команда разработчиков AI систем прицеливания для игровой индустрии - специализируемся на точном прицеливании!</p>
+            <a href="index.html" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Назад на главную
+            </a>
+        </div>
+    </section>
+
+    <!-- About Content -->
+    <section class="about-page">
+        <div class="container">
+            <!-- Mission Section -->
+            <div class="mission-section">
+                <div class="mission-content">
+                    <h2>Наша Миссия</h2>
+                    <p>Мы - команда разработчиков AI систем прицеливания для игровой индустрии. Наша миссия - предоставить игрокам точное и настраиваемое автоматическое прицеливание.</p>
+                    <p>Мы создаем системы, которые помогают игрокам достичь максимальной точности в стрельбе через настраиваемые AI алгоритмы прицеливания.</p>
+                    <p><strong>Техническая база:</strong> Наш софт управляет аппаратной частью компьютера, выполняет задачи пользователя, автоматизирует процессы, обеспечивает безопасность и позволяет создавать другие программы.</p>
+                </div>
+                <div class="mission-image">
+                    <i class="fas fa-crosshairs"></i>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="stats-section">
+                <h2>Наши Достижения</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">1000+</span>
+                            <span class="stat-label">Довольных Клиентов</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">100%</span>
+                            <span class="stat-label">Точность Прицеливания</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">100%</span>
+                            <span class="stat-label">Аппаратное Управление</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">24/7</span>
+                            <span class="stat-label">Автоматизация Процессов</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">∞</span>
+                            <span class="stat-label">Создание Программ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <h2>Почему выбирают AIM assist AI?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <h3>Точное Прицеливание</h3>
+                        <p>Наши AI алгоритмы обеспечивают 100% точность наведения на цели с 0% детектом. Специализированная система для прицеливания.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h3>Аппаратное Управление</h3>
+                        <p>Прямое управление аппаратной частью компьютера для максимальной производительности</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3>Выполнение Задач</h3>
+                        <p>Эффективное выполнение задач пользователя с высокой точностью</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>Автоматизация Процессов</h3>
+                        <p>Полная автоматизация всех процессов прицеливания</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Обеспечение Безопасности</h3>
+                        <p>Многоуровневая защита и безопасность использования</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3>Создание Программ</h3>
+                        <p>Возможность создания и интеграции других программ</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Section -->
+            <div class="team-section">
+                <h2>Наша Команда</h2>
+                <div class="team-content">
+                    <p>AIM assist AI была основана группой энтузиастов AI и гейминга, которые объединили свои знания в области машинного обучения с многолетним опытом в игровой индустрии. Мы специализируемся на создании передовых систем прицеливания.</p>
+                    <div class="team-values">
+                        <div class="value-item">
+                            <h4><i class="fas fa-lightbulb"></i> Инновации</h4>
+                            <p>Мы постоянно исследуем новые возможности применения AI в играх</p>
+                        </div>
+                        <div class="value-item">
+                            <h4><i class="fas fa-handshake"></i> Доверие</h4>
+                            <p>Мы строим долгосрочные отношения с нашими клиентами</p>
+                        </div>
+                        <div class="value-item">
+                            <h4><i class="fas fa-chart-line"></i> Развитие</h4>
+                            <p>Мы постоянно развиваемся и улучшаем наши продукты</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="contact-section">
+                <h2>Связаться с нами</h2>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <div class="method-icon">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="method-content">
+                            <h3>Telegram</h3>
+                            <p>@aimassist_ai_support</p>
+                            <span>Напишите нам в Telegram для быстрой связи</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Вход в аккаунт</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+            <p>Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a></p>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" id="registerUsername" placeholder="Имя пользователя" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Пароль" required>
+                <input type="password" id="registerConfirmPassword" placeholder="Подтвердите пароль" required>
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+            </form>
+            <p>Уже есть аккаунт? <a href="#" id="showLogin">Войти</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

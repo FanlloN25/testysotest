@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIM assist AI - Точный Прицел для Игр</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-crosshairs"></i>
+                <span>AIM assist AI</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="active">Главная</a>
+                <a href="catalog.html">Каталог</a>
+                <a href="about.html">О нас</a>
+            </nav>
+            <div class="user-panel">
+                <button id="loginBtn" class="btn btn-outline">Войти</button>
+                <button id="registerBtn" class="btn btn-primary">Регистрация</button>
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <span id="username"></span>
+                    <button id="logoutBtn" class="btn btn-outline">Выйти</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Точный Прицел для Ваших Любимых Игр</h1>
+                <p>AIM assist AI автоматически доводит прицел до врагов с настраиваемой точностью. Специализированная система только для точного прицеливания.</p>
+                <p><strong>Функции:</strong> Софт управляет аппаратной частью компьютера, выполняет задачи пользователя, автоматизирует процессы, обеспечивает безопасность и позволяет создавать другие программы.</p>
+                <div class="hero-buttons">
+                    <a href="catalog.html" class="btn btn-primary btn-large">Посмотреть Каталог</a>
+                    <a href="about.html" class="btn btn-outline btn-large">Узнать Больше</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-crosshairs"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Features Section -->
+    <section class="quick-features">
+        <div class="container">
+            <h2>Почему выбирают AIM assist AI?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-crosshairs"></i>
+                    <h3>Точное Прицеливание</h3>
+                    <p>AI автоматически доводит прицел точно в цель с настраиваемой точностью</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-sliders-h"></i>
+                    <h3>Аппаратное Управление</h3>
+                    <p>Софт управляет аппаратной частью компьютера для максимальной точности и производительности</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-sync-alt"></i>
+                    <h3>Автоматизация Процессов</h3>
+                    <p>Автоматизирует процессы прицеливания и выполнения задач пользователя</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Безопасность и Создание Программ</h3>
+                    <p>Обеспечивает безопасность и позволяет создавать другие программы</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Вход в аккаунт</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+            <p>Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a></p>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" id="registerUsername" placeholder="Имя пользователя" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Пароль" required>
+                <input type="password" id="registerConfirmPassword" placeholder="Подтвердите пароль" required>
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+            </form>
+            <p>Уже есть аккаунт? <a href="#" id="showLogin">Войти</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

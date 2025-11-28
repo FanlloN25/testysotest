@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты - AIM assist AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html"><i class="fas fa-crosshairs"></i></a>
+                <span>AIM assist AI</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html">Главная</a>
+                <a href="catalog.html">Каталог</a>
+                <a href="about.html">О нас</a>
+                <a href="contact.html" class="active">Контакты</a>
+            </nav>
+            <div class="user-panel">
+                <button id="loginBtn" class="btn btn-outline">Войти</button>
+                <button id="registerBtn" class="btn btn-primary">Регистрация</button>
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <span id="username"></span>
+                    <button id="logoutBtn" class="btn btn-outline">Выйти</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Контакты</h1>
+            <p>Свяжитесь с нами любым удобным способом</p>
+            <a href="index.html" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Назад на главную
+            </a>
+        </div>
+    </section>
+
+    <!-- Contact Content -->
+    <section class="contact-page">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Contact Information -->
+                <div class="contact-info">
+                    <h2>Свяжитесь с нами</h2>
+                    <p>Наша команда поддержки готова помочь вам 24/7. Выберите удобный способ связи.</p>
+                    
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <div class="method-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="method-content">
+                                <h3>Email</h3>
+                                <p>support@aimassist.ai</p>
+                                <span>Ответим в течение 2 часов</span>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method">
+                            <div class="method-icon">
+                                <i class="fab fa-telegram"></i>
+                            </div>
+                            <div class="method-content">
+                                <h3>Telegram</h3>
+                                <p>@aimassist_ai_support</p>
+                                <span>Мгновенные ответы</span>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method">
+                            <div class="method-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="method-content">
+                                <h3>Время работы</h3>
+                                <p>24/7 Поддержка</p>
+                                <span>Мы всегда на связи</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="contact-form">
+                    <h2>Написать нам</h2>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="contactName">Имя</label>
+                            <input type="text" id="contactName" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactEmail">Email</label>
+                            <input type="email" id="contactEmail" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactSubject">Тема</label>
+                            <select id="contactSubject" name="subject" required>
+                                <option value="">Выберите тему</option>
+                                <option value="purchase">Вопрос о покупке</option>
+                                <option value="technical">Техническая поддержка</option>
+                                <option value="billing">Вопрос по оплате</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactMessage">Сообщение</label>
+                            <textarea id="contactMessage" name="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Отправить сообщение</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="faq-section">
+                <h2>Часто задаваемые вопросы</h2>
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h3>Как установить AI аим ассистент?</h3>
+                        <p>После покупки вы получите инструкции по установке. Процесс занимает не более 5 минут. Мы настраиваем только прицеливание.</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h3>Безопасно ли использование AI аим ассистентов?</h3>
+                        <p>Да, наши аим ассистенты используют современные методы маскировки и полностью безопасны для вашего аккаунта. Мы специализируемся только на прицеливании.</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h3>Как часто обновляется AI аим ассистент?</h3>
+                        <p>Мы выпускаем обновления по мере необходимости, обычно 1-2 раза в месяц. Обновления касаются только системы прицеливания.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Вход в аккаунт</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+            <p>Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a></p>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" id="registerUsername" placeholder="Имя пользователя" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Пароль" required>
+                <input type="password" id="registerConfirmPassword" placeholder="Подтвердите пароль" required>
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+            </form>
+            <p>Уже есть аккаунт? <a href="#" id="showLogin">Войти</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
