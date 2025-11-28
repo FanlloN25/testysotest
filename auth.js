@@ -41,7 +41,7 @@ const SECURITY_CONFIG = {
     
     // 2FA
     TWO_FACTOR_ENABLED: true,
-    TOTP_ISSUER: 'VibeCord',
+    TOTP_ISSUER: 'SoftAI',
     
     // Безопасность
     ENABLE_EMAIL_VERIFICATION: true,

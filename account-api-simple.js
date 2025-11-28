@@ -340,7 +340,7 @@ app.use((error, req, res, next) => {
 // Запуск сервера
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`🔥 VibeCord API server running on port ${PORT}`);
+        console.log(`🔥 SoftAI API server running on port ${PORT}`);
         console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
         console.log(`🔐 Security features:`);
         console.log(`   - Rate limiting: Yes`);

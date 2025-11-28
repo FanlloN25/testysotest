@@ -52,7 +52,7 @@ ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "account-api.js"]
 
 # Метаданные образа
-LABEL maintainer="VibeCord Security Team" \
+LABEL maintainer="SoftAI Security Team" \
       version="1.0.0" \
       description="Продвинутая система аутентификации и управления аккаунтами" \
       security.level="high" \

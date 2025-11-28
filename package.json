@@ -1,5 +1,5 @@
 {
-  "name": "vibecord-secure-auth-system",
+  "name": "softai-secure-auth-system",
   "version": "1.0.0",
   "description": "Продвинутая система аутентификации и управления аккаунтами с Firebase",
   "main": "account-api.js",
@@ -26,7 +26,7 @@
     "api",
     "nodejs"
   ],
-  "author": "VibeCord Security Team",
+  "author": "SoftAI Security Team",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
@@ -58,12 +58,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/vibecord-secure-auth.git"
+    "url": "https://github.com/your-org/softai-secure-auth.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/vibecord-secure-auth/issues"
+    "url": "https://github.com/your-org/softai-secure-auth/issues"
   },
-  "homepage": "https://github.com/your-org/vibecord-secure-auth#readme",
+  "homepage": "https://github.com/your-org/softai-secure-auth#readme",
   "jest": {
     "testEnvironment": "node",
     "collectCoverageFrom": [

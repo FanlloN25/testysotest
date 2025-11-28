@@ -1,4 +1,4 @@
-# Docker Compose для защищенной системы аутентификации VibeCord
+# Docker Compose для защищенной системы аутентификации SoftAI
 version: '3.8'
 
 services:

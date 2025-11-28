@@ -52,7 +52,7 @@ const config = {
         // 2FA
         twoFactor: {
             enabled: process.env.TWO_FACTOR_ENABLED === 'true',
-            issuer: process.env.TOTP_ISSUER || 'VibeCord'
+            issuer: process.env.TOTP_ISSUER || 'SoftAI'
         },
 
         // Email
