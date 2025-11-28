@@ -322,8 +322,8 @@ class GameCatalog {
             {
                 id: 'rust',
                 name: 'Rust',
-                description: 'AI аим ассистент для Rust. Автоматическое наведение на врагов, настройка чувствительности. Профессиональное решение для точного прицеливания.',
-                features: ['Автоаим', 'Настройки', 'Аппаратное управление', 'Автоматизация', 'Безопасность'],
+                description: 'AI аим ассистент для Rust. Автоматическое наведение на врагов с настройкой чувствительности.',
+                features: ['Автоаим', 'Настройки', 'Безопасность'],
                 price: '1800₽/месяц',
                 icon: 'fab fa-rust',
                 category: 'Survival'
@@ -444,11 +444,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const header = document.querySelector('.header');
             if (header) {
                 if (window.scrollY > 100) {
-                    header.style.background = 'linear-gradient(135deg, rgba(30, 60, 114, 0.95) 0%, rgba(42, 82, 152, 0.95) 100%)';
-                    header.style.backdropFilter = 'blur(10px)';
+                    header.style.background = 'rgba(10, 10, 10, 0.98)';
+                    header.style.backdropFilter = 'blur(20px)';
+                    header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5)';
                 } else {
-                    header.style.background = 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)';
-                    header.style.backdropFilter = 'none';
+                    header.style.background = 'rgba(10, 10, 10, 0.95)';
+                    header.style.backdropFilter = 'blur(20px)';
+                    header.style.boxShadow = 'none';
                 }
             }
         });
