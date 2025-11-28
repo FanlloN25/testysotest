@@ -333,12 +333,24 @@ class GameCatalog {
     }
 
     init() {
+        // Проверяем, существует ли элемент каталога на этой странице
+        const catalogGrid = document.getElementById('catalogGrid');
+        if (!catalogGrid) {
+            console.log('Catalog grid not found, skipping game catalog initialization');
+            return;
+        }
+        
         this.renderGames();
         this.addFilterListeners();
     }
 
     renderGames() {
         const catalogGrid = document.getElementById('catalogGrid');
+        if (!catalogGrid) {
+            console.log('Cannot render games: catalogGrid element not found');
+            return;
+        }
+        
         catalogGrid.innerHTML = '';
 
         this.games.forEach(game => {
