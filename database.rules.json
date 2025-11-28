@@ -1,0 +1,75 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    
+    "users": {
+      "$userId": {
+        ".read": "auth != null && auth.uid == $userId",
+        ".write": "auth != null && auth.uid == $userId",
+        ".validate": "newData.hasChildren(['email', 'username', 'createdAt', 'isActive'])"
+      }
+    },
+    
+    "sessions": {
+      "$sessionId": {
+        ".read": "auth != null && auth.uid == data.child('userId').val()",
+        ".write": "auth != null && auth.uid == data.child('userId').val()"
+      }
+    },
+    
+    "login_attempts": {
+      "$attemptId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    
+    "security_logs": {
+      "$logId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    
+    "blacklisted_tokens": {
+      "$tokenId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    
+    "customers": {
+      "$customerId": {
+        ".read": "auth != null && auth.uid == $customerId",
+        ".write": "auth != null && auth.uid == $customerId"
+      }
+    },
+    
+    "products": {
+      ".read": true,
+      "$productId": {
+        ".write": "auth != null"
+      }
+    },
+    
+    "purchases": {
+      "$purchaseId": {
+        ".read": "auth != null && (auth.uid == data.child('customerId').val() || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        ".write": "auth != null && (auth.uid == newData.child('customerId').val() || root.child('users').child(auth.uid).child('role').val() == 'admin')"
+      }
+    },
+    
+    "settings": {
+      ".read": true,
+      "$settingId": {
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'"
+      }
+    },
+    
+    "public": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}
