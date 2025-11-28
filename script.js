@@ -1,33 +1,192 @@
-// User Management System
+// Firebase User Management System
 class UserManager {
     constructor() {
         this.currentUser = null;
+        this.firebaseReady = false;
         this.init();
     }
 
-    init() {
-        this.loadUser();
+    async init() {
+        await this.initFirebase();
         this.bindEvents();
         this.updateUI();
     }
 
-    loadUser() {
-        const userData = localStorage.getItem('aimassist_current_user');
-        if (userData) {
-            this.currentUser = JSON.parse(userData);
+    async initFirebase() {
+        try {
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyD73TT1L4rslvuNGvOfMUOdR3ZnnNzTWmY",
+                authDomain: "softai-bd22a.firebaseapp.com",
+                databaseURL: "https://softai-bd22a-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "softai-bd22a",
+                storageBucket: "softai-bd22a.firebasestorage.app",
+                messagingSenderId: "225066508622",
+                appId: "1:225066508622:web:0f09237a168dda21657e1f",
+                measurementId: "G-WT2BG911J6"
+            };
+
+            // Initialize Firebase
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            this.app = initializeApp(firebaseConfig);
+            this.auth = getAuth(this.app);
+            this.db = getFirestore(this.app);
+            
+            // Listen for auth state changes
+            onAuthStateChanged(this.auth, async (firebaseUser) => {
+                if (firebaseUser) {
+                    // Get additional user data from Firestore
+                    const userDoc = await getDoc(doc(this.db, 'customers', firebaseUser.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        this.currentUser = {
+                            id: firebaseUser.uid,
+                            email: firebaseUser.email,
+                            username: userData.username || firebaseUser.displayName,
+                            isEmailVerified: firebaseUser.emailVerified,
+                            createdAt: userData.createdAt
+                        };
+                    } else {
+                        // Create user document if it doesn't exist
+                        await setDoc(doc(this.db, 'customers', firebaseUser.uid), {
+                            email: firebaseUser.email,
+                            username: firebaseUser.displayName || '',
+                            createdAt: serverTimestamp(),
+                            isVerified: firebaseUser.emailVerified,
+                            isActive: true,
+                            isBlocked: false,
+                            lastLogin: serverTimestamp()
+                        });
+                        
+                        this.currentUser = {
+                            id: firebaseUser.uid,
+                            email: firebaseUser.email,
+                            username: firebaseUser.displayName || '',
+                            isEmailVerified: firebaseUser.emailVerified
+                        };
+                    }
+                } else {
+                    this.currentUser = null;
+                }
+                this.updateUI();
+            });
+            
+            this.firebaseReady = true;
+            console.log('🔥 Firebase инициализирован успешно');
+            
+        } catch (error) {
+            console.error('Ошибка инициализации Firebase:', error);
+            this.firebaseReady = false;
         }
     }
 
-    saveUser(user) {
-        localStorage.setItem('aimassist_current_user', JSON.stringify(user));
-        this.currentUser = user;
+    async register(email, password, username) {
+        try {
+            if (!this.firebaseReady) {
+                throw new Error('Firebase не инициализирован');
+            }
+
+            const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            // Check if user already exists in Firebase
+            try {
+                await createUserWithEmailAndPassword(this.auth, email, password);
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    throw new Error('Пользователь с таким email уже существует в Firebase');
+                }
+                throw error;
+            }
+            
+            const user = this.auth.currentUser;
+            
+            // Update profile with username
+            await updateProfile(user, {
+                displayName: username
+            });
+            
+            // Create user document in Firestore
+            await setDoc(doc(this.db, 'customers', user.uid), {
+                email: email,
+                username: username,
+                createdAt: serverTimestamp(),
+                isVerified: user.emailVerified,
+                isActive: true,
+                isBlocked: false,
+                lastLogin: serverTimestamp()
+            });
+            
+            return { success: true, message: 'Регистрация в Firebase успешна!' };
+            
+        } catch (error) {
+            console.error('Ошибка регистрации в Firebase:', error);
+            return { success: false, error: this.getFirebaseErrorMessage(error.code) };
+        }
     }
 
-    logout() {
-        localStorage.removeItem('aimassist_current_user');
-        this.currentUser = null;
-        this.updateUI();
-        this.showNotification('Вы успешно вышли из аккаунта', 'success');
+    async login(email, password) {
+        try {
+            if (!this.firebaseReady) {
+                throw new Error('Firebase не инициализирован');
+            }
+
+            const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+            const user = userCredential.user;
+            
+            // Update last login
+            await updateDoc(doc(this.db, 'customers', user.uid), {
+                lastLogin: serverTimestamp()
+            });
+            
+            return { success: true, message: 'Вход через Firebase успешен!' };
+            
+        } catch (error) {
+            console.error('Ошибка входа в Firebase:', error);
+            return { success: false, error: this.getFirebaseErrorMessage(error.code) };
+        }
+    }
+
+    async logout() {
+        try {
+            if (!this.firebaseReady) {
+                throw new Error('Firebase не инициализирован');
+            }
+
+            const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            await signOut(this.auth);
+            
+            this.currentUser = null;
+            this.updateUI();
+            
+            return { success: true, message: 'Вы успешно вышли из аккаунта' };
+            
+        } catch (error) {
+            console.error('Ошибка выхода:', error);
+            return { success: false, error: 'Ошибка выхода из системы' };
+        }
+    }
+
+    getFirebaseErrorMessage(errorCode) {
+        const errorMessages = {
+            'auth/user-not-found': 'Пользователь с таким email не найден в Firebase',
+            'auth/wrong-password': 'Неверный пароль',
+            'auth/email-already-in-use': 'Пользователь с таким email уже существует в Firebase',
+            'auth/weak-password': 'Пароль слишком слабый (минимум 6 символов)',
+            'auth/invalid-email': 'Неверный формат email',
+            'auth/too-many-requests': 'Слишком много попыток. Попробуйте позже',
+            'auth/user-disabled': 'Аккаунт заблокирован',
+            'auth/operation-not-allowed': 'Операция не разрешена',
+            'auth/requires-recent-login': 'Требуется недавний вход'
+        };
+        
+        return errorMessages[errorCode] || errorCode || 'Произошла ошибка Firebase. Попробуйте снова.';
     }
 
     updateUI() {
@@ -52,7 +211,14 @@ class UserManager {
         // Login/Register buttons
         document.getElementById('loginBtn').addEventListener('click', () => this.showModal('loginModal'));
         document.getElementById('registerBtn').addEventListener('click', () => this.showModal('registerModal'));
-        document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const result = await this.logout();
+            if (result.success) {
+                this.showNotification(result.message, 'success');
+            } else {
+                this.showNotification(result.error, 'error');
+            }
+        });
 
         // Modal switching
         document.getElementById('showRegister').addEventListener('click', (e) => {
@@ -131,27 +297,29 @@ class UserManager {
         forms.forEach(form => form.reset());
     }
 
-    handleLogin(e) {
+    async handleLogin(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
 
-        // Get users from localStorage
-        const users = JSON.parse(localStorage.getItem('aimassist_users') || '[]');
-        const user = users.find(u => u.email === email && u.password === password);
+        if (!email || !password) {
+            this.showNotification('Заполните все поля', 'error');
+            return;
+        }
 
-        if (user) {
-            this.saveUser(user);
+        const result = await this.login(email, password);
+
+        if (result.success) {
             this.hideModal('loginModal');
-            this.showNotification('Добро пожаловать, ' + user.username + '!', 'success');
+            this.showNotification('Добро пожаловать, ' + (this.currentUser?.username || email) + '!', 'success');
         } else {
-            this.showNotification('Неверный email или пароль', 'error');
+            this.showNotification(result.error, 'error');
         }
     }
 
-    handleRegister(e) {
+    async handleRegister(e) {
         e.preventDefault();
-        console.log('Registration form submitted'); // Debug log
+        console.log('Registration form submitted to Firebase'); // Debug log
         
         const username = document.getElementById('registerUsername').value.trim();
         const email = document.getElementById('registerEmail').value.trim();
@@ -178,34 +346,17 @@ class UserManager {
             return;
         }
 
-        // Check if email already exists
-        const users = JSON.parse(localStorage.getItem('aimassist_users') || '[]');
-        console.log('Existing users:', users.length); // Debug log
-        
-        if (users.find(u => u.email === email)) {
-            console.log('Email already exists'); // Debug log
-            this.showNotification('Пользователь с таким email уже существует', 'error');
-            return;
+        // Register user in Firebase (this will automatically check if email exists)
+        const result = await this.register(email, password, username);
+
+        if (result.success) {
+            this.hideModal('registerModal');
+            console.log('Firebase registration successful'); // Debug log
+            this.showNotification('Регистрация в Firebase успешно завершена!', 'success');
+        } else {
+            console.log('Firebase registration failed:', result.error); // Debug log
+            this.showNotification(result.error, 'error');
         }
-
-        // Create new user
-        const newUser = {
-            id: Date.now(),
-            username,
-            email,
-            password,
-            createdAt: new Date().toISOString()
-        };
-
-        console.log('New user created:', newUser); // Debug log
-
-        users.push(newUser);
-        localStorage.setItem('aimassist_users', JSON.stringify(users));
-        this.saveUser(newUser);
-        this.hideModal('registerModal');
-        
-        console.log('Registration successful'); // Debug log
-        this.showNotification('Регистрация успешно завершена!', 'success');
     }
 
     handlePurchase(e) {
@@ -417,29 +568,20 @@ class GameCatalog {
 let userManager;
 let gameCatalog;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM loaded, initializing application...'); // Debug log
     
     try {
+        // Clear old localStorage data to avoid conflicts
+        localStorage.removeItem('aimassist_users');
+        localStorage.removeItem('aimassist_current_user');
+        console.log('Cleared old localStorage data'); // Debug log
+        
         userManager = new UserManager();
         gameCatalog = new GameCatalog();
 
-        // Add some demo users for testing
-        const demoUsers = [
-            {
-                id: 1,
-                username: 'demo_user',
-                email: 'demo@example.com',
-                password: 'demo123',
-                createdAt: new Date().toISOString()
-            }
-        ];
-
-        const existingUsers = JSON.parse(localStorage.getItem('aimassist_users') || '[]');
-        if (existingUsers.length === 0) {
-            localStorage.setItem('aimassist_users', JSON.stringify(demoUsers));
-            console.log('Demo users added to localStorage'); // Debug log
-        }
+        // Firebase will handle user management automatically
+        console.log('Firebase user management initialized'); // Debug log
 
         // Make userManager globally available
         window.userManager = userManager;

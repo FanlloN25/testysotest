@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Firebase Аутентификации</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #333;
+            color: white;
+        }
+        .log {
+            background: #000;
+            color: #00ff00;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff4444; }
+        .info { color: #4488ff; }
+    </style>
+</head>
+<body>
+    <h1>🔥 Тест Firebase Аутентификации</h1>
+    
+    <div class="test-section">
+        <h2>Статус Firebase</h2>
+        <button id="checkFirebase" class="btn">Проверить Firebase</button>
+        <div id="firebaseStatus" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Регистрация</h2>
+        <input type="text" id="testUsername" placeholder="Имя пользователя" value="testuser123">
+        <input type="email" id="testEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="testPassword" placeholder="Пароль" value="password123">
+        <button id="testRegister" class="btn">Зарегистрироваться в Firebase</button>
+        <div id="registerResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Вход</h2>
+        <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="Пароль" value="password123">
+        <button id="testLogin" class="btn">Войти через Firebase</button>
+        <div id="loginResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Выход</h2>
+        <button id="testLogout" class="btn">Выйти из Firebase</button>
+        <div id="logoutResult" class="log"></div>
+    </div>
+
+    <script>
+        let firebaseReady = false;
+        let app, auth, db;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        async function initFirebase() {
+            try {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyD73TT1L4rslvuNGvOfMUOdR3ZnnNzTWmY",
+                    authDomain: "softai-bd22a.firebaseapp.com",
+                    databaseURL: "https://softai-bd22a-default-rtdb.europe-west1.firebasedatabase.app",
+                    projectId: "softai-bd22a",
+                    storageBucket: "softai-bd22a.firebasestorage.app",
+                    messagingSenderId: "225066508622",
+                    appId: "1:225066508622:web:0f09237a168dda21657e1f",
+                    measurementId: "G-WT2BG911J6"
+                };
+
+                // Dynamic imports
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                const { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                const { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                // Listen for auth state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        log('firebaseStatus', `✅ Пользователь авторизован: ${user.email} (${user.uid})`, 'success');
+                        
+                        // Update last login
+                        await updateDoc(doc(db, 'customers', user.uid), {
+                            lastLogin: serverTimestamp()
+                        });
+                    } else {
+                        log('firebaseStatus', 'ℹ️ Пользователь не авторизован', 'info');
+                    }
+                });
+                
+                firebaseReady = true;
+                log('firebaseStatus', '🔥 Firebase успешно инициализирован!', 'success');
+                
+            } catch (error) {
+                log('firebaseStatus', `❌ Ошибка инициализации Firebase: ${error.message}`, 'error');
+                firebaseReady = false;
+            }
+        }
+
+        async function testRegister() {
+            const username = document.getElementById('testUsername').value;
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            if (!firebaseReady) {
+                log('registerResult', '❌ Firebase не инициализирован', 'error');
+                return;
+            }
+
+            try {
+                const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                
+                log('registerResult', '🔄 Создаем пользователя в Firebase...', 'info');
+                
+                // Check if user exists by trying to create
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    log('registerResult', `✅ Пользователь создан в Firebase Auth: ${user.uid}`, 'success');
+                    
+                    // Update profile
+                    await updateProfile(user, { displayName: username });
+                    
+                    // Create Firestore document
+                    await setDoc(doc(db, 'customers', user.uid), {
+                        email: email,
+                        username: username,
+                        createdAt: serverTimestamp(),
+                        isVerified: user.emailVerified,
+                        isActive: true,
+                        isBlocked: false,
+                        lastLogin: serverTimestamp()
+                    });
+                    
+                    log('registerResult', '✅ Дополнительные данные сохранены в Firestore', 'success');
+                    log('registerResult', '🎉 Регистрация в Firebase полностью завершена!', 'success');
+                    
+                } catch (createError) {
+                    if (createError.code === 'auth/email-already-in-use') {
+                        log('registerResult', '❌ Пользователь с таким email уже существует в Firebase', 'error');
+                    } else {
+                        throw createError;
+                    }
+                }
+                
+            } catch (error) {
+                log('registerResult', `❌ Ошибка регистрации: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!firebaseReady) {
+                log('loginResult', '❌ Firebase не инициализирован', 'error');
+                return;
+            }
+
+            try {
+                const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                
+                log('loginResult', '🔄 Входим в Firebase...', 'info');
+                
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                log('loginResult', `✅ Вход в Firebase успешен: ${user.email} (${user.uid})`, 'success');
+                log('loginResult', '🎉 Аутентификация через Firebase завершена!', 'success');
+                
+            } catch (error) {
+                log('loginResult', `❌ Ошибка входа: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogout() {
+            if (!firebaseReady) {
+                log('logoutResult', '❌ Firebase не инициализирован', 'error');
+                return;
+            }
+
+            try {
+                const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                
+                log('logoutResult', '🔄 Выходим из Firebase...', 'info');
+                
+                await signOut(auth);
+                
+                log('logoutResult', '✅ Выход из Firebase успешен', 'success');
+                
+            } catch (error) {
+                log('logoutResult', `❌ Ошибка выхода: ${error.message}`, 'error');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('checkFirebase').addEventListener('click', initFirebase);
+        document.getElementById('testRegister').addEventListener('click', testRegister);
+        document.getElementById('testLogin').addEventListener('click', testLogin);
+        document.getElementById('testLogout').addEventListener('click', testLogout);
+
+        // Auto-initialize Firebase
+        console.log('🚀 Инициализация Firebase...');
+        initFirebase();
+    </script>
+</body>
+</html>
