@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест шрифтов</title>
+    <style>
+        body { background: #1a1a1a; color: white; padding: 20px; font-family: Arial, sans-serif; }
+        .heading-test { font-family: var(--font-headings); color: #00d4ff; }
+        .body-test { font-family: var(--font-body); color: #ffffff; }
+    </style>
+</head>
+<body>
+    <h1 class="heading-test">Тест Gothic №60</h1>
+    <p class="body-test">Профессиональная система точного прицеливания для ваших любимых игр.</p>
+    <p id="fonts-info"></p>
+    <script>
+        const rootStyles = getComputedStyle(document.documentElement);
+        const headingsFont = rootStyles.getPropertyValue('--font-headings');
+        const bodyFont = rootStyles.getPropertyValue('--font-body');
+        document.getElementById('fonts-info').textContent = 
+            `Заголовки: ${headingsFont} | Описания: ${bodyFont}`;
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rust game shield - Steam version style -->
+  <path d="M20 25 L60 25 Q65 25 65 30 L65 50 Q65 55 60 55 L20 55 Q15 55 15 50 L15 30 Q15 25 20 25 Z" fill="#CD412B" stroke="#8B2828" stroke-width="2"/>
+  
+  <!-- Inner shield -->
+  <path d="M25 30 L55 30 Q58 30 58 33 L58 47 Q58 50 55 50 L25 50 Q22 50 22 47 L22 33 Q22 30 25 30 Z" fill="#E67E22"/>
+  
+  <!-- Crosshair/target symbol -->
+  <circle cx="40" cy="40" r="8" fill="none" stroke="#2C3E50" stroke-width="2"/>
+  <circle cx="40" cy="40" r="4" fill="none" stroke="#2C3E50" stroke-width="1.5"/>
+  
+  <!-- Cross lines -->
+  <line x1="32" y1="40" x2="48" y2="40" stroke="#2C3E50" stroke-width="2"/>
+  <line x1="40" y1="32" x2="40" y2="48" stroke="#2C3E50" stroke-width="2"/>
+  
+  <!-- Bottom rust-colored emblem -->
+  <rect x="35" y="52" width="10" height="6" fill="#8B2828" rx="1"/>
+  
+  <!-- Small corner details -->
+  <circle cx="30" cy="30" r="1.5" fill="#8B2828"/>
+  <circle cx="50" cy="30" r="1.5" fill="#8B2828"/>
+  <circle cx="30" cy="50" r="1.5" fill="#8B2828"/>
+  <circle cx="50" cy="50" r="1.5" fill="#8B2828"/>
+</svg>

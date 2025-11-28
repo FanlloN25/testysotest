@@ -1,0 +1,374 @@
+rules_version = '2';
+
+// МАКСИМАЛЬНО ЗАЩИЩЕННЫЕ FIREBASE RULES
+// Продвинутые правила безопасности для production использования
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // === ОСНОВНЫЕ КОЛЛЕКЦИИ ===
+    
+    // Коллекция пользователей (основная)
+    match /users/{userId} {
+      // Только владелец может читать свои данные
+      allow read: if request.auth != null && 
+        request.auth.uid == userId &&
+        !isUserBlocked(userId) &&
+        isUserActive(userId);
+      
+      // Создание только для аутентифицированных пользователей
+      allow create: if request.auth != null && 
+        request.auth.uid == userId &&
+        validateUserData(request.resource.data) &&
+        validatePasswordSecurity(request.resource.data.password) &&
+        checkEmailDomain(request.resource.data.email) &&
+        !isUserBlocked(userId) &&
+        !isRateLimited(userId, 'create') &&
+        request.time < resource.data.createdAt + duration.value(300); // 5 минут на создание
+      
+      // Контролируемое обновление с проверками
+      allow update: if request.auth != null && 
+        request.auth.uid == userId &&
+        validateUserUpdate(request.resource.data, resource.data) &&
+        !isCriticalFieldChange(request.resource.data, resource.data) &&
+        !isUserBlocked(userId) &&
+        !isRateLimited(userId, 'update') &&
+        validateIPConsistency(userId) &&
+        validateDeviceConsistency(userId);
+      
+      // Защищенное удаление
+      allow delete: if request.auth != null && 
+        request.auth.uid == userId &&
+        validateAccountDeletion(resource.data) &&
+        !hasActiveSubscriptions(userId) &&
+        isEmailVerified();
+      
+      // Запрещаем массовое чтение
+      allow list: if false;
+    }
+    
+    // Коллекция профилей пользователей
+    match /profiles/{userId} {
+      allow read: if request.auth != null && 
+        request.auth.uid == userId &&
+        !isUserBlocked(userId);
+        
+      allow create, update: if request.auth != null && 
+        request.auth.uid == userId &&
+        validateProfileData(request.resource.data) &&
+        !isUserBlocked(userId) &&
+        !isRateLimited(userId, 'profile_update');
+        
+      // Запрещаем удаление профилей
+      allow delete: if false;
+    }
+    
+    // Коллекция сессий
+    match /sessions/{sessionId} {
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId &&
+        !isSessionExpired(sessionId);
+      
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId &&
+        validateSessionData(request.resource.data) &&
+        !isUserBlocked(request.auth.uid) &&
+        getActiveSessionsCount(request.auth.uid) < 5; // Максимум 5 сессий
+      
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.userId &&
+        validateSessionUpdate(request.resource.data, resource.data);
+      
+      // Автоматическая очистка
+      allow delete: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.uid in resource.data.adminIds ||
+         isSessionExpired(sessionId));
+    }
+    
+    // === БЕЗОПАСНОСТЬ ===
+    
+    // Логи безопасности (только для системы и админов)
+    match /security_logs/{logId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || isAdmin());
+      
+      allow create: if isSystemRequest() || isAdmin();
+      allow update: if isSystemRequest();
+      allow delete: if isAdmin() && request.time < resource.data.createdAt + duration.value(2592000); // 30 дней
+    }
+    
+    // Блокировки пользователей
+    match /user_blocks/{blockId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow write: if isAdmin() || isSystemRequest();
+    }
+    
+    // Rate limiting для попыток входа
+    match /login_attempts/{attemptId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if canAttemptLogin(request.auth.uid);
+      allow delete: if isAdmin() || isSystemCleanup();
+    }
+    
+    // === АДМИНИСТРИРОВАНИЕ ===
+    
+    // Роли и права
+    match /roles/{roleId} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+    }
+    
+    // Системные настройки
+    match /config/{configId} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+    }
+    
+    // Подписки
+    match /subscriptions/{subId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || isAdmin());
+      allow write: if request.auth != null && 
+        (isAdmin() || isSystemRequest());
+    }
+    
+    // === ПУБЛИЧНЫЕ ДАННЫЕ ===
+    
+    match /public/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // === ЗАПРЕЩЕННЫЕ КОЛЛЕКЦИИ ===
+    
+    // Все остальные коллекции запрещены
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+
+// Базовые проверки
+function isUserBlocked(userId) {
+  return exists(/databases/$(database)/documents/user_blocks/$(userId));
+}
+
+function isUserActive(userId) {
+  return get(/databases/$(database)/documents/users/$(userId)).data.isActive == true;
+}
+
+function isEmailVerified() {
+  return request.auth.token.email_verified == true;
+}
+
+// Rate limiting
+function isRateLimited(userId, operation) {
+  let recentAttempts = query(
+    /databases/$(database)/documents/login_attempts,
+    where('userId', '==', userId),
+    where('operation', '==', operation),
+    where('timestamp', '>', request.time - duration.value(3600)) // последний час
+  );
+  return size(recentAttempts) > 10; // больше 10 попыток за час
+}
+
+function canAttemptLogin(userId) {
+  let recentAttempts = query(
+    /databases/$(database)/documents/login_attempts,
+    where('userId', '==', userId),
+    where('success', '==', false),
+    where('timestamp', '>', request.time - duration.value(900)) // последние 15 минут
+  );
+  return size(recentAttempts) < 5; // максимум 5 неудачных попыток за 15 минут
+}
+
+// Сессии
+function isSessionExpired(sessionId) {
+  return request.time > get(/databases/$(database)/documents/sessions/$(sessionId)).data.expiresAt;
+}
+
+function getActiveSessionsCount(userId) {
+  let activeSessions = query(
+    /databases/$(database)/documents/sessions,
+    where('userId', '==', userId),
+    where('expiresAt', '>', request.time)
+  );
+  return size(activeSessions);
+}
+
+// Консистентность данных
+function validateIPConsistency(userId) {
+  // Проверяем последнюю активную сессию пользователя
+  let recentSessions = query(
+    /databases/$(database)/documents/sessions,
+    where('userId', '==', userId),
+    where('expiresAt', '>', request.time),
+    orderBy('lastActivity', 'desc'),
+    limit(1)
+  );
+  
+  if (size(recentSessions) == 0) return true; // нет активных сессий
+  
+  let lastSession = recentSessions[0];
+  return lastSession.data.lastIP == request.auth.token.ip ||
+    request.time < lastSession.data.lastIPChange + duration.value(3600); // 1 час на смену IP
+}
+
+function validateDeviceConsistency(userId) {
+  let recentSessions = query(
+    /databases/$(database)/documents/sessions,
+    where('userId', '==', userId),
+    where('expiresAt', '>', request.time),
+    orderBy('lastActivity', 'desc'),
+    limit(1)
+  );
+  
+  if (size(recentSessions) == 0) return true;
+  
+  let lastSession = recentSessions[0];
+  return lastSession.data.deviceId == request.auth.token.deviceId ||
+    request.time < lastSession.data.deviceChange + duration.value(86400); // 24 часа
+}
+
+// === ВАЛИДАЦИЯ ДАННЫХ ===
+
+function validateUserData(data) {
+  return data.keys().hasAll([
+    'email', 
+    'username', 
+    'createdAt', 
+    'isActive',
+    'password',
+    'emailVerified'
+  ]) &&
+    data.email is string && 
+    data.username is string && 
+    data.isActive is bool &&
+    data.password is string &&
+    data.emailVerified is bool &&
+    data.createdAt is timestamp &&
+    validateEmailFormat(data.email) &&
+    validateUsernameFormat(data.username) &&
+    data.email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') &&
+    data.username.matches('^[a-zA-Z0-9_]{3,20}$') &&
+    data.email.size() <= 254 &&
+    data.username.size() >= 3 && data.username.size() <= 20;
+}
+
+function validateProfileData(data) {
+  return data.keys().hasAll(['userId', 'updatedAt']) &&
+    data.userId is string &&
+    data.updatedAt is timestamp &&
+    (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 50)) &&
+    (!('bio' in data) || (data.bio is string && data.bio.size() <= 500)) &&
+    (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 1000));
+}
+
+function validateSessionData(data) {
+  return data.keys().hasAll(['userId', 'createdAt', 'expiresAt', 'deviceId', 'lastIP']) &&
+    data.userId is string &&
+    data.createdAt is timestamp &&
+    data.expiresAt is timestamp &&
+    data.deviceId is string &&
+    data.lastIP is string &&
+    data.expiresAt > data.createdAt &&
+    data.expiresAt <= data.createdAt + duration.value(86400000); // Максимум 24 часа
+}
+
+function validateSessionUpdate(newData, oldData) {
+  return newData.expiresAt >= oldData.expiresAt &&
+    (!('lastActivity' in newData) || newData.lastActivity >= oldData.lastActivity);
+}
+
+function validatePasswordSecurity(password) {
+  return password is string &&
+    password.size() >= 8 &&
+    password.size() <= 128 &&
+    password.matches('.*[a-z].*') &&
+    password.matches('.*[A-Z].*') &&
+    password.matches('.*\\d.*') &&
+    password.matches('.*[!@#$%^&*()_+\\-=\\[\\]{};\\:\'\"\\\\|,.<>\\/?].*');
+}
+
+function checkEmailDomain(email) {
+  return !email.matches('.*@mailinator\\..*') &&
+    !email.matches('.*@guerrillamail\\..*') &&
+    !email.matches('.*@10minutemail\\..*') &&
+    !email.matches('.*@tempmail\\..*') &&
+    !email.matches('.*@mail\\..*') &&
+    !email.matches('.*@yopmail\\..*');
+}
+
+function validateEmailFormat(email) {
+  return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') &&
+    !email.matches('.*\\.\\..*') && // Двойные точки
+    !email.matches('.*@.*@.*'); // Двойные @
+}
+
+function validateUsernameFormat(username) {
+  return username.matches('^[a-zA-Z0-9_]+$') &&
+    !username.matches('^(admin|root|system|guest|support|help)$') &&
+    username.size() >= 3 && username.size() <= 20;
+}
+
+function validateUserUpdate(newData, oldData) {
+  return 
+    (!('email' in newData) || (newData.email == oldData.email && oldData.emailVerified == true)) &&
+    (!('isActive' in newData) || newData.isActive == oldData.isActive) &&
+    (!('roles' in newData) || newData.roles == oldData.roles) &&
+    (!('emailVerified' in newData) || newData.emailVerified == oldData.emailVerified) &&
+    ('updatedAt' in newData && newData.updatedAt is timestamp);
+}
+
+function isCriticalFieldChange(newData, oldData) {
+  return ('password' in newData && newData.password != oldData.password) ||
+    ('email' in newData && newData.email != oldData.email) ||
+    ('isActive' in newData && newData.isActive != oldData.isActive) ||
+    ('roles' in newData && newData.roles != oldData.roles);
+}
+
+function validateAccountDeletion(userData) {
+  return userData.isActive == true &&
+    userData.emailVerified == true &&
+    userData.failedLoginAttempts < 5;
+}
+
+function hasActiveSubscriptions(userId) {
+  // Проверяем наличие активных подписок
+  let activeSubs = query(
+    /databases/$(database)/documents/subscriptions,
+    where('userId', '==', userId),
+    where('isActive', '==', true)
+  );
+  return size(activeSubs) > 0;
+}
+
+// === СИСТЕМНЫЕ ФУНКЦИИ ===
+
+function isSystemRequest() {
+  return request.auth != null && 
+    request.auth.token.admin == true &&
+    request.auth.token.system == true;
+}
+
+function isSystemCleanup() {
+  return request.auth != null && 
+    request.auth.token.admin == true &&
+    request.auth.token.cleanup == true;
+}
+
+function isAdmin() {
+  return request.auth != null && 
+    (request.auth.token.admin == true || 
+     request.auth.token.role in ['admin', 'super_admin', 'moderator']);
+}
+
+function isSuperAdmin() {
+  return request.auth != null && 
+    request.auth.token.role == 'super_admin';
+}

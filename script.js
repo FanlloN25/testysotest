@@ -365,9 +365,17 @@ class GameCatalog {
         card.setAttribute('data-game', game.id);
         card.setAttribute('data-category', game.category);
 
+        // Handle Rust game icon - PNG file
+        let iconElement = '';
+        if (game.id === 'rust') {
+            iconElement = '<img src="rust-icon-real.png" alt="Rust Game Logo" class="rust-icon">';
+        } else {
+            iconElement = `<i class="${game.icon}"></i>`;
+        }
+
         card.innerHTML = `
             <div class="game-image">
-                <i class="${game.icon}"></i>
+                ${iconElement}
             </div>
             <div class="game-info">
                 <h3>${game.name}</h3>

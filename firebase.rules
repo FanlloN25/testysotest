@@ -1,0 +1,287 @@
+rules_version = '2';
+
+// Firebase Rules для VibeCord - AI aim assist система
+// Правила безопасности для сайта продажи игрового софта
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // === ПОЛЬЗОВАТЕЛИ ===
+    match /customers/{customerId} {
+      // Пользователи могут читать только свои данные
+      allow read: if request.auth != null && 
+        request.auth.uid == customerId &&
+        isCustomerVerified(customerId);
+      
+      // Создание аккаунта
+      allow create: if request.auth != null && 
+        request.auth.uid == customerId &&
+        validateCustomerData(request.resource.data) &&
+        !isCustomerBlocked(customerId);
+      
+      // Обновление профиля
+      allow update: if request.auth != null && 
+        request.auth.uid == customerId &&
+        validateCustomerUpdate(request.resource.data, resource.data) &&
+        !isCustomerBlocked(customerId);
+      
+      // Удаление аккаунта (только самим пользователем)
+      allow delete: if request.auth != null && 
+        request.auth.uid == customerId &&
+        hasNoActivePurchases(customerId);
+    }
+    
+    // === КАТАЛОГ ПРОДУКТОВ ===
+    match /products/{productId} {
+      // Все могут читать каталог
+      allow read: if true;
+      
+      // Только администраторы могут изменять каталог
+      allow write: if isAdmin();
+    }
+    
+    // === ПОКУПКИ И ТРАНЗАКЦИИ ===
+    match /purchases/{purchaseId} {
+      // Пользователи могут читать свои покупки
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.customerId;
+      
+      // Создание покупки (после успешной оплаты)
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.customerId &&
+        validatePurchaseData(request.resource.data) &&
+        isValidProduct(request.resource.data.productId);
+      
+      // Обновление статуса покупки
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.customerId &&
+        isPaymentUpdate(request.resource.data, resource.data);
+      
+      // Админ может все с покупками
+      allow write: if isAdmin();
+    }
+    
+    // === ПОДПИСКИ ===
+    match /subscriptions/{subscriptionId} {
+      // Пользователи могут читать свои подписки
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.customerId;
+      
+      // Создание подписки
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.customerId &&
+        validateSubscriptionData(request.resource.data) &&
+        isValidSubscription(request.resource.data.productId);
+      
+      // Обновление подписки (только админ)
+      allow update: if isAdmin();
+      
+      // Удаление подписки
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.customerId &&
+        canCancelSubscription(resource.data);
+    }
+    
+    // === ПОДДЕРЖКА ===
+    match /support_tickets/{ticketId} {
+      // Пользователи могут читать свои тикеты
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.customerId;
+      
+      // Создание тикета поддержки
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.customerId &&
+        validateSupportTicket(request.resource.data);
+      
+      // Обновление тикета (пользователь может добавлять комментарии)
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.customerId &&
+        isValidTicketUpdate(request.resource.data, resource.data);
+      
+      // Админ может обновлять статус тикетов
+      allow write: if isAdmin();
+    }
+    
+    // === СИСТЕМНЫЕ КОЛЛЕКЦИИ ===
+    
+    // Настройки системы
+    match /settings/{settingId} {
+      allow read: if true; // Публичные настройки
+      allow write: if isAdmin(); // Только админ
+    }
+    
+    // Логи системы
+    match /system_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isSystemRequest();
+    }
+    
+    // Промокоды
+    match /promo_codes/{codeId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // === ЗАПРЕЩЕННЫЕ КОЛЛЕКЦИИ ===
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+
+// Проверки пользователей
+function isCustomerVerified(customerId) {
+  return get(/databases/$(database)/documents/customers/$(customerId)).data.isVerified == true;
+}
+
+function isCustomerBlocked(customerId) {
+  return get(/databases/$(database)/documents/customers/$(customerId)).data.isBlocked == true;
+}
+
+function hasNoActivePurchases(customerId) {
+  // Упрощенная проверка - временно разрешаем удаление
+  return true;
+}
+
+// Валидация данных клиента
+function validateCustomerData(data) {
+  return data.keys().hasAll([
+    'email',
+    'username',
+    'createdAt',
+    'isVerified',
+    'isActive'
+  ]) &&
+    data.email is string &&
+    data.username is string &&
+    data.isVerified is bool &&
+    data.isActive is bool &&
+    data.createdAt is timestamp &&
+    validateEmailFormat(data.email) &&
+    data.username.matches('^[a-zA-Z0-9_]{3,20}$') &&
+    data.email.size() <= 254 &&
+    data.username.size() >= 3 && data.username.size() <= 20;
+}
+
+function validateCustomerUpdate(newData, oldData) {
+  return 
+    (!('email' in newData) || newData.email == oldData.email) &&
+    (!('isVerified' in newData) || newData.isVerified == oldData.isVerified) &&
+    (!('isActive' in newData) || newData.isActive == oldData.isActive) &&
+    (!('isBlocked' in newData) || newData.isBlocked == oldData.isBlocked) &&
+    ('updatedAt' in newData && newData.updatedAt is timestamp);
+}
+
+// Валидация покупок
+function validatePurchaseData(data) {
+  return data.keys().hasAll([
+    'customerId',
+    'productId',
+    'amount',
+    'currency',
+    'status',
+    'createdAt',
+    'paymentMethod'
+  ]) &&
+    data.customerId is string &&
+    data.productId is string &&
+    data.amount is number &&
+    data.amount > 0 &&
+    data.currency is string &&
+    data.status is string &&
+    data.status in ['pending', 'completed', 'failed', 'refunded'] &&
+    data.createdAt is timestamp &&
+    data.paymentMethod is string;
+}
+
+function isPaymentUpdate(newData, oldData) {
+  // Пользователь может изменять только комментарии к покупке
+  return (!('status' in newData) || newData.status == oldData.status) &&
+    (!('amount' in newData) || newData.amount == oldData.amount) &&
+    (!('customerId' in newData) || newData.customerId == oldData.customerId);
+}
+
+function isValidProduct(productId) {
+  return exists(/databases/$(database)/documents/products/$(productId));
+}
+
+// Валидация подписок
+function validateSubscriptionData(data) {
+  return data.keys().hasAll([
+    'customerId',
+    'productId',
+    'startDate',
+    'endDate',
+    'status',
+    'autoRenew'
+  ]) &&
+    data.customerId is string &&
+    data.productId is string &&
+    data.startDate is timestamp &&
+    data.endDate is timestamp &&
+    data.endDate > data.startDate &&
+    data.status is string &&
+    data.status in ['active', 'cancelled', 'expired', 'paused'] &&
+    data.autoRenew is bool;
+}
+
+function isValidSubscription(productId) {
+  // Проверяем что продукт существует
+  return exists(/databases/$(database)/documents/products/$(productId));
+}
+
+function canCancelSubscription(subscription) {
+  // Можно отменить если подписка активна
+  return subscription.status == 'active' &&
+    subscription.autoRenew == true;
+}
+
+// Валидация тикетов поддержки
+function validateSupportTicket(data) {
+  return data.keys().hasAll([
+    'customerId',
+    'subject',
+    'message',
+    'priority',
+    'status',
+    'createdAt'
+  ]) &&
+    data.customerId is string &&
+    data.subject is string &&
+    data.message is string &&
+    data.priority is string &&
+    data.priority in ['low', 'medium', 'high', 'urgent'] &&
+    data.status is string &&
+    data.status in ['open', 'in_progress', 'resolved', 'closed'] &&
+    data.createdAt is timestamp &&
+    data.subject.size() >= 5 && data.subject.size() <= 200 &&
+    data.message.size() >= 10 && data.message.size() <= 2000;
+}
+
+function isValidTicketUpdate(newData, oldData) {
+  // Пользователь может добавлять только комментарии
+  return (!('status' in newData) || newData.status == oldData.status) &&
+    (!('priority' in newData) || newData.priority == oldData.priority) &&
+    (!('assignedTo' in newData) || newData.assignedTo == oldData.assignedTo);
+}
+
+// Валидация email
+function validateEmailFormat(email) {
+  return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') &&
+    !email.matches('.*\\.\\..*') &&
+    !email.matches('.*@.*@.*');
+}
+
+// Системные функции
+function isAdmin() {
+  return request.auth != null && 
+    (request.auth.token.admin == true || 
+     request.auth.token.role in ['admin', 'super_admin']);
+}
+
+function isSystemRequest() {
+  return request.auth != null && 
+    request.auth.token.system == true;
+}

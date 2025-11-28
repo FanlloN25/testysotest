@@ -1,5 +1,27 @@
 /* Modern Minimalistic Dark Gaming Theme - AIM assist AI */
 
+/* Import custom fonts */
+@import url('https://fonts.googleapis.com/css2?family=Gothic:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Font loading optimization */
+@font-face {
+    font-family: 'Gothic';
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    font-display: swap;
+}
+
+/* 
+ * TEMPORARY: Background image for Rust game card
+ * TODO: Replace with permanent background image later
+ * Current background: https://rustcraft.ru/wp-content/uploads/2020/11/Визуальные-читы-в-Rust-1024x576.jpg
+ * Opacity set to 50% as requested
+ */
+
 /* CSS Reset & Base Styles */
 * {
     margin: 0;
@@ -45,7 +67,9 @@
     --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.2);
     
     /* Typography */
-    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-headings: 'Gothic', 'Arial Black', 'Impact', Arial, sans-serif;
+    --font-body: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    --font-primary: var(--font-body);
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     
     /* Spacing */
@@ -71,7 +95,7 @@
 
 /* Base Typography */
 body {
-    font-family: var(--font-primary);
+    font-family: var(--font-body);
     line-height: 1.6;
     color: var(--color-text-primary);
     background-color: var(--color-bg-primary);
@@ -91,9 +115,16 @@ body {
 
 /* Typography Hierarchy */
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
+    font-family: var(--font-headings);
+    font-weight: 700;
     line-height: 1.2;
     margin-bottom: var(--space-sm);
+}
+
+/* Description text */
+p, .description, .game-info p, .feature-card p, .stat-label, .method-content span {
+    font-family: var(--font-body);
+    font-weight: 400;
 }
 
 h1 { font-size: 3.5rem; font-weight: 700; }
@@ -104,8 +135,10 @@ h5 { font-size: 1.25rem; }
 h6 { font-size: 1.125rem; }
 
 p {
+    font-family: var(--font-body);
     margin-bottom: var(--space-sm);
     color: var(--color-text-secondary);
+    font-weight: 400;
 }
 
 /* Links */
@@ -331,10 +364,12 @@ a:hover {
 }
 
 .hero-content p {
+    font-family: var(--font-body);
     font-size: 1.25rem;
     margin-bottom: var(--space-xl);
     color: var(--color-text-secondary);
     line-height: 1.6;
+    font-weight: 400;
 }
 
 .hero-buttons {
@@ -466,12 +501,39 @@ a:hover {
     box-shadow: var(--shadow-lg);
 }
 
+/* Special styling for Rust game card */
+.game-card[data-game="rust"] {
+    border: 2px solid var(--color-accent-primary);
+    box-shadow: 
+        0 0 20px rgba(0, 212, 255, 0.3),
+        0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.game-card[data-game="rust"]:hover {
+    border-color: #33d4ff;
+    box-shadow: 
+        0 0 30px rgba(0, 212, 255, 0.5),
+        0 12px 40px rgba(0, 0, 0, 0.6);
+    transform: translateY(-6px);
+}
+
+.game-card[data-game="rust"] .game-image::before {
+    background: 
+        linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(0, 212, 255, 0.15) 50%, rgba(102, 126, 234, 0.25) 100%),
+        url('https://rustcraft.ru/wp-content/uploads/2020/11/%D0%92%D0%B8%D0%B7%D1%83%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D1%87%D0%B8%D1%82%D1%8B-%D0%B2-Rust-1024x576.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.6;
+}
+
 .game-image {
     background: var(--color-bg-tertiary);
     padding: var(--space-3xl);
     text-align: center;
     position: relative;
     overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .game-image::before {
@@ -481,14 +543,69 @@ a:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at center, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+    background: 
+        linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 212, 255, 0.15) 50%, rgba(102, 126, 234, 0.25) 100%),
+        url('https://rustcraft.ru/wp-content/uploads/2020/11/%D0%92%D0%B8%D0%B7%D1%83%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D1%87%D0%B8%D1%82%D1%8B-%D0%B2-Rust-1024x576.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.5;
+    z-index: 0;
 }
+
+.game-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
+    z-index: 1;
+}
+
+.game-image img {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 0 15px rgba(205, 65, 43, 0.5));
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+/* Rust game icon PNG styling - увеличена с белым свечением для холодной темы */
+.game-card[data-game="rust"] .rust-icon {
+    width: 180px;
+    height: 180px;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
+    transition: all var(--transition-normal);
+}
+
+.game-card[data-game="rust"]:hover .rust-icon {
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+    transform: scale(1.05);
+}
+
+
 
 .game-image i {
     font-size: 4rem;
     color: var(--color-accent-primary);
     position: relative;
     z-index: 1;
+}
+
+/* Special styling for Rust FontAwesome icon */
+.game-card[data-game="rust"] .game-image i {
+    color: var(--color-accent-primary);
+    filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.5));
+    transition: all var(--transition-normal);
+}
+
+.game-card[data-game="rust"]:hover .game-image i {
+    filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.8));
+    transform: scale(1.1);
 }
 
 .game-info {
